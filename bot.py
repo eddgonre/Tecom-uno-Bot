@@ -1,8 +1,10 @@
 
 # Dentro del import, el conversetionhandler es para hacer la conversacion
 # MessageHandler para devolver un texto.
+import os
 import qrcode
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
+from telegram import ChatAction
 
 # Una variable para que el Bot se quede esperando el texto del QR
 INPUT_TEXT = 0
@@ -23,14 +25,28 @@ def generate_qr(text):
     img.save(filename)
     return filename
 
+def send_qr(filename, chat):
+    chat.send_action(
+        action=ChatAction.UPLOAD_PHOTO,
+        timeout=None
+    )
+
+    chat.send_photo(
+        photo=open(filename, 'rb')
+    )
+
+    os.unlink(filename)
+
 def input_text(update, context):
     text = update.message.text
     print(text)
     #funcion que genera el codigo QR
     filename = generate_qr(text)
+    chat = update.message.chat
+    print(chat)
     print(filename)
     #funcion que envio el codigo QR el usuario.
-    #send_qr(filename)
+    send_qr(filename, chat)
 
     return ConversationHandler.END
 if __name__ == '__main__':
